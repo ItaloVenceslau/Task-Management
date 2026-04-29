@@ -3,7 +3,7 @@
 // ========================================
 
 // Use Railway backend URL or localhost for development
-const API_BASE_URL = 'https://your-backend-url.onrailway.com/api/tasks';
+const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
