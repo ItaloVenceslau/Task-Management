@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TaskFlow Pro | Intelligent Task Management</title>
+    <meta name="description" content="Professional task management system with real-time tracking and analytics">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Premium Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-gradient"></div>
+            
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="url(#logoGradient)"/>
+                            <path d="M10 16L14 20L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0" y1="0" x2="32" y2="32">
+                                    <stop stop-color="#6366f1"/>
+                                    <stop stop-color="#8b5cf6"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-name">TaskFlow</span>
+                        <span class="logo-badge">Pro</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&name=JD&size=40" alt="User">
+                    <span class="online-dot"></span>
+                </div>
+                <div class="user-info">
+                    <h4>Italo Ramalho</h4>
+                    <p>Pro Plan • Active</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <div class="nav-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span>Dashboard</span>
+                    <div class="nav-badge"></div>
+                </a>
+                <a href="#" class="nav-item" data-view="tasks">
+                    <div class="nav-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <span>All Tasks</span>
+                    <div class="nav-badge" id="taskCountBadge">0</div>
+                </a>
+                <a href="#" class="nav-item" data-view="create">
+                    <div class="nav-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <span>Create Task</span>
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <div class="nav-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item" data-view="calendar">
+                    <div class="nav-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <span>Calendar</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="api-status-card">
+                    <div class="api-status-indicator" id="apiStatus"></div>
+                    <div class="api-status-text">
+                        <span>API Server</span>
+                        <small id="apiStatusText">Checking...</small>
+                    </div>
+                    <i class="fas fa-server"></i>
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main">
+            <!-- Floating Action Button -->
+            <div class="fab" id="fab">
+                <i class="fas fa-plus"></i>
+                <span>Quick Task</span>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view active">
+                <div class="view-header">
+                    <div class="header-left">
+                        <div class="greeting">
+                            <h1 class="greeting-title">
+                                Welcome back, <span class="highlight">Italo</span>
+                                <i class="fas fa-hand-peace"></i>
+                            </h1>
+                            <p class="greeting-subtitle">Here's your task overview for today</p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="date-display" id="currentDate"></div>
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-dot"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid Premium -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-card-1">
+                        <div class="stat-card-bg"></div>
+                        <div class="stat-card-content">
+                            <div class="stat-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Tasks</span>
+                                <h2 id="totalTasks" class="stat-number">0</h2>
+                            </div>
+                            <div class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-2">
+                        <div class="stat-card-content">
+                            <div class="stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Pending</span>
+                                <h2 id="pendingTasks" class="stat-number">0</h2>
+                            </div>
+                            <div class="stat-trend neutral">
+                                <i class="fas fa-minus"></i>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill pending-fill" id="pendingProgress"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-3">
+                        <div class="stat-card-content">
+                            <div class="stat-icon progress">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">In Progress</span>
+                                <h2 id="inProgressTasks" class="stat-number">0</h2>
+                            </div>
+                            <div class="stat-trend up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+5%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-4">
+                        <div class="stat-card-content">
+                            <div class="stat-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Completed</span>
+                                <h2 id="completedTasks" class="stat-number">0</h2>
+                            </div>
+                            <div class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+18%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Task Distribution</h3>
+                                <p>Status breakdown</p>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-action" id="refreshChartBtn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <canvas id="taskChart" height="300"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Weekly Activity</h3>
+                                <p>Last 7 days performance</p>
+                            </div>
+                            <select id="weekSelect" class="week-select">
+                                <option value="1">This Week</option>
+                                <option value="2">Last Week</option>
+                            </select>
+                        </div>
+                        <canvas id="activityChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Tasks Premium -->
+                <div class="recent-section">
+                    <div class="section-header">
+                        <div>
+                            <h2>Recent Activity</h2>
+                            <p>Your latest tasks</p>
+                        </div>
+                        <button class="btn-outline" id="refreshDashboardBtn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="recentTasksList" class="recent-timeline">
+                        <div class="loading-container">
+                            <div class="loading-spinner"></div>
+                            <p>Loading tasks...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Tasks View Premium -->
+            <div id="tasksView" class="view">
+                <div class="view-header">
+                    <div>
+                        <h1>My Tasks</h1>
+                        <p>Manage and organize your workflow</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-primary" id="createTaskHeaderBtn">
+                            <i class="fas fa-plus"></i> New Task
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters Premium -->
+                <div class="filters-wrapper">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by title or description...">
+                        <button class="clear-search" id="clearSearch" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">
+                            <i class="fas fa-list"></i> All
+                            <span id="allCount" class="filter-count">0</span>
+                        </button>
+                        <button class="filter-tab" data-filter="pending">
+                            <i class="fas fa-clock"></i> Pending
+                            <span id="pendingCount" class="filter-count">0</span>
+                        </button>
+                        <button class="filter-tab" data-filter="in-progress">
+                            <i class="fas fa-spinner"></i> In Progress
+                            <span id="progressCount" class="filter-count">0</span>
+                        </button>
+                        <button class="filter-tab" data-filter="completed">
+                            <i class="fas fa-check"></i> Completed
+                            <span id="completedCount" class="filter-count">0</span>
+                        </button>
+                    </div>
+                    <div class="sort-wrapper">
+                        <select id="sortSelect" class="sort-select">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="az">A - Z</option>
+                            <option value="za">Z - A</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="tasksList" class="tasks-board">
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <p>Loading tasks...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Task View Premium -->
+            <div id="createView" class="view">
+                <div class="create-container">
+                    <div class="create-card">
+                        <div class="create-card-header">
+                            <div class="create-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <h2>Create New Task</h2>
+                            <p>Fill in the details below to add a new task</p>
+                        </div>
+                        <form id="createTaskForm" class="create-form">
+                            <div class="input-group">
+                                <label>
+                                    <i class="fas fa-heading"></i>
+                                    Task Title <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="taskTitle" 
+                                    placeholder="e.g., Complete project documentation"
+                                    maxlength="50"
+                                    autocomplete="off"
+                                >
+                                <div class="input-hint">
+                                    <span id="titleCount">0</span>/50 characters
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>
+                                    <i class="fas fa-align-left"></i>
+                                    Description <span class="required">*</span>
+                                </label>
+                                <textarea 
+                                    id="taskDescription" 
+                                    rows="5" 
+                                    placeholder="Describe your task in detail..."
+                                    maxlength="200"
+                                ></textarea>
+                                <div class="input-hint">
+                                    <span id="descCount">0</span>/200 characters
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="reset" class="btn-secondary">
+                                    <i class="fas fa-undo-alt"></i> Clear
+                                </button>
+                                <button type="submit" class="btn-gradient">
+                                    <i class="fas fa-plus-circle"></i> Create Task
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analyticsView" class="view">
+                <div class="view-header">
+                    <h1>Analytics Dashboard</h1>
+                    <p>Deep insights into your productivity</p>
+                </div>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Completion Rate</h3>
+                        <div class="completion-chart">
+                            <svg viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" stroke-width="15"/>
+                                <circle id="completionCircle" cx="100" cy="100" r="80" fill="none" stroke="#6366f1" stroke-width="15" stroke-dasharray="502" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+                            </svg>
+                            <div class="completion-text">
+                                <span id="completionPercent">0</span>%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendarView" class="view">
+                <div class="view-header">
+                    <h1>Calendar</h1>
+                    <p>Visual timeline of your tasks</p>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="currentMonthYear"></h3>
+                        <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Premium Edit Modal -->
+    <div id="editModal" class="modal premium-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h2><i class="fas fa-edit"></i> Edit Task</h2>
+                    <p>Make changes to your task</p>
+                </div>
+                <button class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editTaskForm">
+                <input type="hidden" id="editTaskId">
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>Title</label>
+                        <input type="text" id="editTitle" maxlength="50">
+                    </div>
+                    <div class="input-group">
+                        <label>Description</label>
+                        <textarea id="editDescription" rows="3" maxlength="200"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <div class="status-selector">
+                            <button type="button" class="status-option" data-status="pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </button>
+                            <button type="button" class="status-option" data-status="in-progress">
+                                <i class="fas fa-spinner"></i> In Progress
+                            </button>
+                            <button type="button" class="status-option" data-status="completed">
+                                <i class="fas fa-check"></i> Completed
+                            </button>
+                        </div>
+                        <input type="hidden" id="editStatus" value="pending">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Update Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Premium Delete Confirmation -->
+    <div id="deleteModal" class="modal premium-modal">
+        <div class="modal-container modal-sm">
+            <div class="modal-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3>Delete Task</h3>
+            <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Basic fade in -->
+    <div class="animate-fadeIn">Content fades in</div>
+
+    <!-- Staggered card entrance -->
+    <div class="stagger-children">
+        <div>Item 1 - appears first</div>
+        <div>Item 2 - appears second</div>
+        <div>Item 3 - appears third</div>
+    </div>
+
+    <!-- Hover effects -->
+    <button class="hover-float">Hover me - I float!</button>
+    <button class="hover-glow">Hover me - I glow!</button>
+
+    <!-- Loading spinner -->
+    <div class="animate-spin">🔄</div>
+
+    <!-- Pulse animation -->
+    <div class="animate-pulse">Attention grabbing</div>
+
+    <!-- Combo animations -->
+    <div class="animate-fadeInUp duration-500 delay-200">
+        Fades in from bottom with delay
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+
+
+</body>
+</html>
