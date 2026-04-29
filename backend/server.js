@@ -1,31 +1,31 @@
 const express = require('express');
-const cors = require('cors');  // ← ADD THIS
-const taskRoutes = require('./routes/taskRoutes');
-const logger = require('./middleware/logger');
+const cors = require('cors');
+const taskRoutes = require('./src/routes/taskRoutes');
+const logger = require('./src/middleware/logger');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;  // ← USE THIS
 
-// MIDDLEWARE - ORDER MATTERS!
-app.use(cors());              // ← ADD THIS FIRST - Enables CORS for all origins
-app.use(express.json());      // Parse JSON bodies
-app.use(logger);              // Your custom logger
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(logger);
 
 // Routes
 app.use('/api/tasks', taskRoutes);
 
-// 404 handler for undefined routes
+// 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: "Route not found" });
 });
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server backend running on http://localhost:${PORT}`);
-    console.log(`Server site running on http://localhost:${PORT}/api/tasks`);
+// Listen on all interfaces
+app.listen(PORT, '0.0.0.0', () => {  // ← ADD '0.0.0.0'
+    console.log(`Server running on port ${PORT}`);
 });
