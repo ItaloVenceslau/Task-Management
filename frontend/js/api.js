@@ -2,11 +2,8 @@
 // API SERVICE - Backend Communication
 // ========================================
 
-const backend = process.env.CLASSIC_BACKEND;
-
-const API_BASE_URL = `${backend}/api/tasks`;
-
-
+// Use Railway backend URL or localhost for development
+const API_BASE_URL = 'https://your-backend-url.onrailway.com/api/tasks';
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
@@ -80,4 +77,5 @@ class TaskAPI {
     }
 }
 
-module.exports = new TaskAPI();
+// Make available globally
+window.TaskAPI = new TaskAPI();
