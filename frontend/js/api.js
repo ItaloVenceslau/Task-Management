@@ -2,7 +2,7 @@
 // API SERVICE - Backend Communication
 // ========================================
 
-const backend = import.meta.env.CLASSIC_BACKEND;
+const backend = process.env.CLASSIC_BACKEND;
 
 const API_BASE_URL = `${backend}/api/tasks`;
 
@@ -79,3 +79,5 @@ class TaskAPI {
         }
     }
 }
+
+module.exports = new TaskAPI();
