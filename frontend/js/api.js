@@ -2,9 +2,11 @@
 // API SERVICE - Backend Communication
 // ========================================
 
+const backend = import.meta.env.CLASSIC_BACKEND;
+
 const API_BASE_URL = `${backend}/api/tasks`;
 
-const backend = import.meta.env.CLASSIC_BACKEND;
+
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
