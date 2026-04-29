@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const taskRoutes = require('./src/routes/taskRoutes');
-const logger = require('./src/middleware/logger');
+const taskRoutes = require('./routes/taskRoutes');
+const logger = require('./middleware/logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;  // ← USE THIS
