@@ -3,7 +3,7 @@
 // ========================================
 
 // Use Railway backend URL or localhost for development
-const API_BASE_URL = 'PLACEHOLDER_URL';
+const API_BASE_URL = CLASSIC_BACKEND;
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
