@@ -1,0 +1,42 @@
+# --- GERAL ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+Thumbs.db
+*.log
+
+# --- BACKEND (Node.js) ---
+node_modules/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.database/
+*.db
+*.sqlite
+
+# --- FRONTEND (React, Vue, Next.js, etc.) ---
+# Pasta de pacotes do front
+/node_modules
+/.pnp
+.pnp.js
+
+# Pasta de saída da produção (Build)
+/dist
+/build
+/out
+/.next/
+
+# Coisas de testes
+/coverage
+
+# Configurações de editores (VS Code, JetBrains)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
