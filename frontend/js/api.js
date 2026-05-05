@@ -78,4 +78,4 @@ class TaskAPI {
 }
 
 // Make available globally
-window.TaskAPI = new TaskAPI();
+window.TaskAPI = TaskAPI;
