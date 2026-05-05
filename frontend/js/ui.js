@@ -22,6 +22,20 @@ class TaskFlowUI {
 
     initSidebar() {
         const toggleBtn = document.getElementById('sidebarToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (mobileMenuBtn && sidebarOverlay) {
+            mobileMenuBtn.addEventListener('click', () => {
+                this.sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+            });
+
+            sidebarOverlay.addEventListener('click', () => {
+                this.sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+            });
+        }
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
                 this.sidebar.classList.toggle('collapsed');
@@ -60,6 +74,8 @@ class TaskFlowUI {
         });
     }
 
+    // Mobile sidebar handling
+        
     initFAB() {
         this.fab.addEventListener('click', () => {
             // Navigate to create task view

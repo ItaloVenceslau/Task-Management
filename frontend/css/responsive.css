@@ -1,0 +1,353 @@
+/* ========================================
+   TASKFLOW PRO - RESPONSIVE STYLES
+   Mobile-first responsive design
+   ======================================== */
+
+/* Tablet Styles (768px - 1024px) */
+@media screen and (max-width: 1024px) {
+    :root {
+        --sidebar-width: 240px;
+        --space-2xl: 2rem;
+        --space-3xl: 3rem;
+    }
+
+    .stats-grid {
+        gap: var(--space-lg);
+    }
+
+    .charts-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .tasks-board {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--space-lg);
+    }
+
+    .greeting-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile Landscape (640px - 768px) */
+@media screen and (max-width: 768px) {
+    /* Sidebar becomes overlay on mobile */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        z-index: 1000;
+        width: var(--sidebar-width);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: var(--shadow-2xl);
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: none;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .main {
+        margin-left: 0 !important;
+        padding: var(--space-md);
+    }
+
+    /* Hide sidebar toggle button on desktop, show on mobile */
+    .sidebar-toggle {
+        display: flex;
+    }
+
+    /* Adjust stats grid for mobile */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+
+    .stat-card-content {
+        padding: var(--space-md);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.625rem;
+    }
+
+    .stat-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    /* View header adjustments */
+    .view-header {
+        padding: var(--space-lg);
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .greeting-title {
+        font-size: 1.25rem;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: var(--space-sm);
+    }
+
+    .filter-tab {
+        white-space: nowrap;
+    }
+
+    /* Task cards */
+    .task-card {
+        padding: var(--space-md);
+    }
+
+    .task-title {
+        font-size: 1rem;
+    }
+
+    /* Create form */
+    .create-container {
+        padding: var(--space-md);
+    }
+
+    .create-card-header {
+        padding: var(--space-lg);
+    }
+
+    .create-form {
+        padding: var(--space-lg);
+    }
+
+    /* Modal */
+    .premium-modal .modal-container {
+        width: 95%;
+        margin: var(--space-md);
+    }
+
+    /* FAB button adjustments */
+    .fab {
+        bottom: var(--space-lg);
+        right: var(--space-lg);
+        width: 48px;
+        height: 48px;
+    }
+
+    .fab:hover {
+        width: 48px;
+    }
+
+    .fab:hover span {
+        display: none;
+    }
+
+    /* Calendar */
+    .calendar-container {
+        padding: var(--space-md);
+    }
+
+    .calendar-day {
+        font-size: 0.75rem;
+    }
+
+    /* Analytics */
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+}
+
+/* Mobile Portrait (up to 480px) */
+@media screen and (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tasks-board {
+        grid-template-columns: 1fr;
+    }
+
+    .charts-row {
+        gap: var(--space-md);
+    }
+
+    .chart-card {
+        padding: var(--space-md);
+    }
+
+    .filter-tabs {
+        gap: var(--space-xs);
+    }
+
+    .filter-tab {
+        padding: var(--space-xs) var(--space-md);
+        font-size: 0.75rem;
+    }
+
+    .sort-select {
+        width: 100%;
+        margin-top: var(--space-sm);
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+
+    .status-selector {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .toast-container {
+        bottom: var(--space-md);
+        right: var(--space-md);
+        left: var(--space-md);
+    }
+
+    .toast {
+        width: 100%;
+    }
+
+    .timeline-item {
+        padding: var(--space-sm);
+    }
+
+    .timeline-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+
+    .timeline-title {
+        font-size: 0.875rem;
+    }
+}
+
+/* Hamburger menu button for mobile */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 1001;
+    background: var(--primary-500);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+}
+
+@media screen and (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .view-header {
+        margin-top: 40px;
+    }
+}
+
+/* Dark mode adjustments for mobile */
+@media screen and (max-width: 768px) {
+    [data-theme="dark"] .sidebar {
+        background: var(--gray-900);
+    }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+    .nav-item,
+    .task-card,
+    .filter-tab,
+    button {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-item:active,
+    .task-card:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Print styles */
+@media print {
+    .sidebar,
+    .fab,
+    .notification-btn,
+    .chart-action,
+    .btn-outline,
+    .modal {
+        display: none !important;
+    }
+
+    .main {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .view {
+        display: block !important;
+    }
+
+    .stat-card,
+    .task-card,
+    .chart-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* Loading states for mobile */
+@media screen and (max-width: 768px) {
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+    }
+
+    .empty-state p {
+        font-size: 0.875rem;
+    }
+}
