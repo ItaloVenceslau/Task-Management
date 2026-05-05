@@ -74,15 +74,14 @@ class TaskFlowUI {
         });
     }
 
-    // Mobile sidebar handling
-        
     initFAB() {
-        this.fab.addEventListener('click', () => {
-            // Navigate to create task view
-            document.querySelector('[data-view="create"]').click();
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        if (this.fab) {
+            this.fab.addEventListener('click', () => {
+                const createBtn = document.querySelector('[data-view="create"]');
+                if (createBtn) createBtn.click();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
     }
 
     initDateDisplay() {
@@ -158,7 +157,82 @@ class TaskFlowUI {
     }
 }
 
+// Connection Monitor - Wait for TaskAPI to be ready
+class ConnectionMonitor {
+    constructor() {
+        this.isOnline = true;
+        this.retryCount = 0;
+        this.maxRetries = 3;
+        // Wait for TaskAPI to be available
+        if (window.TaskAPI) {
+            this.init();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.TaskAPI) this.init();
+            });
+        }
+    }
+    
+    init() {
+        // Check connection every 30 seconds
+        setInterval(() => this.checkConnection(), 30000);
+        this.checkConnection();
+    }
+    
+    async checkConnection() {
+        // Check if TaskAPI is available
+        if (!window.TaskAPI) {
+            console.warn('TaskAPI not available yet');
+            return;
+        }
+        
+        try {
+            const isHealthy = await TaskAPI.checkHealth();
+            
+            if (isHealthy !== this.isOnline) {
+                this.isOnline = isHealthy;
+                this.updateConnectionStatus();
+                
+                if (isHealthy) {
+                    if (typeof showToast === 'function') {
+                        showToast('Backend connection restored!', 'success');
+                    }
+                    // Reload to fetch fresh data
+                    location.reload();
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('Lost connection to backend server', 'error');
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Connection check failed:', error);
+        }
+    }
+    
+    updateConnectionStatus() {
+        const statusIndicator = document.getElementById('apiStatus');
+        const statusText = document.getElementById('apiStatusText');
+        
+        if (statusIndicator && statusText) {
+            if (this.isOnline) {
+                statusIndicator.className = 'api-status-indicator online';
+                statusText.textContent = 'Connected';
+            } else {
+                statusIndicator.className = 'api-status-indicator offline';
+                statusText.textContent = 'Offline - Retrying...';
+            }
+        }
+    }
+}
+
 // Initialize UI when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.taskFlowUI = new TaskFlowUI();
+    // Initialize connection monitor after TaskAPI is confirmed
+    setTimeout(() => {
+        if (window.TaskAPI) {
+            window.connectionMonitor = new ConnectionMonitor();
+        }
+    }, 100);
 });

@@ -1,56 +1,38 @@
-// API Configuration
-// Change this to false when your real backend is ready
-const USE_MOCK_DATA = true;
+// API Configuration - Automatically works in all environments
+// For local development: http://localhost:3000/api/tasks
+// For production: Your Railway URL
 
-// Real API URL (keep for when backend is ready)
-const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
+// Detect environment and set API URL
 
-// Mock data for development/testing
-let mockTasks = [
-    {
-        id: 1,
-        title: "Complete project documentation",
-        description: "Write comprehensive documentation for the TaskFlow API including endpoints and examples",
-        status: "pending",
-        createdAt: new Date().toISOString()
-    },
-    {
-        id: 2,
-        title: "Fix navigation bug",
-        description: "Resolve the sidebar collapse issue on mobile devices and improve responsiveness",
-        status: "in-progress",
-        createdAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-        id: 3,
-        title: "Update dependencies",
-        description: "Upgrade all npm packages to latest versions and test for breaking changes",
-        status: "completed",
-        createdAt: new Date(Date.now() - 172800000).toISOString()
-    },
-    {
-        id: 4,
-        title: "Design new dashboard UI",
-        description: "Create modern dashboard layout with analytics and charts",
-        status: "pending",
-        createdAt: new Date(Date.now() - 259200000).toISOString()
-    },
-    {
-        id: 5,
-        title: "Implement search functionality",
-        description: "Add search and filter capabilities to tasks view",
-        status: "in-progress",
-        createdAt: new Date(Date.now() - 345600000).toISOString()
+// Fallback for showToast if not defined
+if (typeof showToast !== 'function') {
+    window.showToast = function(message, type = 'success') {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        // Try to use the real showToast if it exists later
+        const checkToast = setInterval(() => {
+            if (typeof window.showToast === 'function' && window.showToast !== showToastFallback) {
+                clearInterval(checkToast);
+                window.showToast(message, type);
+            }
+        }, 100);
+    };
+    var showToastFallback = window.showToast;
+}
+
+const getAPIBaseURL = () => {
+    // Check if we're in production (deployed on Vercel)
+    if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+        // Production - use your Railway backend URL
+        return 'https://task-management-production-b99a.up.railway.app/api/tasks';
     }
-];
+    // Local development
+    return 'http://localhost:3000/api/tasks';
+};
+
+const API_BASE_URL = getAPIBaseURL();
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
-        // Use mock data if enabled
-        if (USE_MOCK_DATA) {
-            return this.mockRequest(endpoint, options);
-        }
-
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
@@ -59,194 +41,99 @@ class TaskAPI {
         };
 
         const mergedOptions = { ...defaultOptions, ...options };
-
+        
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         try {
             const url = `${API_BASE_URL}${endpoint}`;
-            console.log('Fetching:', url, mergedOptions);
+            console.log(`📡 API Request: ${options.method || 'GET'} ${url}`);
             
-            const response = await fetch(url, mergedOptions);
+            const response = await fetch(url, {
+                ...mergedOptions,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
-                // If real API fails and we're not using mock, throw error
-                if (!USE_MOCK_DATA) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+                let errorMessage = `HTTP Error: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use status text
+                    errorMessage = response.statusText || errorMessage;
                 }
+                throw new Error(errorMessage);
             }
-
-            const data = await response.json();
-            return data;
+            
+            // Handle 204 No Content responses
+            if (response.status === 204) {
+                return { success: true };
+            }
+            
+            return await response.json();
         } catch (error) {
-            console.error('API Error:', error);
-            // If real API fails, fall back to mock data
-            if (!USE_MOCK_DATA) {
-                console.warn('Falling back to mock data due to API error');
-                return this.mockRequest(endpoint, options);
+            clearTimeout(timeoutId);
+            console.error('❌ API Error:', error);
+            
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout - server is not responding');
             }
+            
             throw error;
         }
-    }
-
-    // Mock request handler for testing
-    static async mockRequest(endpoint, options = {}) {
-        // Simulate network delay for realistic behavior
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        const method = options.method || 'GET';
-        
-        // Extract ID from endpoint if present
-        let id = null;
-        let cleanEndpoint = endpoint;
-        
-        const idMatch = endpoint.match(/\/(\d+)$/);
-        if (idMatch) {
-            id = parseInt(idMatch[1]);
-            cleanEndpoint = endpoint.replace(/\/\d+$/, '');
-        }
-
-        try {
-            switch (method) {
-                case 'GET':
-                    // Get all tasks
-                    if (cleanEndpoint === '' || cleanEndpoint === '/') {
-                        return [...mockTasks];
-                    }
-                    // Get single task by ID
-                    if (id) {
-                        const task = mockTasks.find(t => t.id === id);
-                        if (!task) {
-                            throw new Error('Task not found');
-                        }
-                        return { ...task };
-                    }
-                    break;
-
-                case 'POST':
-                    if (cleanEndpoint === '' || cleanEndpoint === '/') {
-                        const body = JSON.parse(options.body || '{}');
-                        const newTask = {
-                            id: Math.max(...mockTasks.map(t => t.id), 0) + 1,
-                            title: body.title,
-                            description: body.description || '',
-                            status: 'pending',
-                            createdAt: new Date().toISOString()
-                        };
-                        mockTasks.push(newTask);
-                        return { 
-                            success: true,
-                            message: 'Task created successfully', 
-                            task: newTask 
-                        };
-                    }
-                    break;
-
-                case 'PUT':
-                    if (id) {
-                        const body = JSON.parse(options.body || '{}');
-                        const taskIndex = mockTasks.findIndex(t => t.id === id);
-                        if (taskIndex === -1) {
-                            throw new Error('Task not found');
-                        }
-                        
-                        mockTasks[taskIndex] = {
-                            ...mockTasks[taskIndex],
-                            ...body,
-                            updatedAt: new Date().toISOString()
-                        };
-                        return { 
-                            success: true,
-                            message: 'Task updated successfully', 
-                            task: mockTasks[taskIndex] 
-                        };
-                    }
-                    break;
-
-                case 'DELETE':
-                    if (id) {
-                        const taskIndex = mockTasks.findIndex(t => t.id === id);
-                        if (taskIndex === -1) {
-                            throw new Error('Task not found');
-                        }
-                        mockTasks.splice(taskIndex, 1);
-                        return { 
-                            success: true,
-                            message: 'Task deleted successfully' 
-                        };
-                    }
-                    break;
-            }
-        } catch (error) {
-            console.error('Mock API Error:', error);
-            throw error;
-        }
-
-        throw new Error(`Invalid request: ${method} ${endpoint}`);
     }
 
     static async getAllTasks() {
         try {
-            const response = await this.request('');
-            // Ensure we always return an array
-            const tasks = Array.isArray(response) ? response : [];
-            return tasks;
+            const tasks = await this.request('');
+            return Array.isArray(tasks) ? tasks : [];
         } catch (error) {
-            console.error('Error getting tasks:', error);
+            console.error('Failed to fetch tasks:', error);
+            showToast('Failed to load tasks. Make sure the backend is running.', 'error');
             return [];
         }
     }
 
     static async getTaskById(id) {
-        try {
-            return await this.request(`/${id}`);
-        } catch (error) {
-            console.error('Error getting task by ID:', error);
-            throw error;
-        }
+        return await this.request(`/${id}`);
     }
 
     static async createTask(title, description) {
-        try {
-            return await this.request('', {
-                method: 'POST',
-                body: JSON.stringify({ title, description })
-            });
-        } catch (error) {
-            console.error('Error creating task:', error);
-            throw error;
-        }
+        return await this.request('', {
+            method: 'POST',
+            body: JSON.stringify({ title, description })
+        });
     }
 
     static async updateTask(id, updates) {
-        try {
-            return await this.request(`/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify(updates)
-            });
-        } catch (error) {
-            console.error('Error updating task:', error);
-            throw error;
-        }
+        return await this.request(`/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(updates)
+        });
     }
 
     static async deleteTask(id) {
-        try {
-            await this.request(`/${id}`, { method: 'DELETE' });
-            return true;
-        } catch (error) {
-            console.error('Error deleting task:', error);
-            throw error;
-        }
+        await this.request(`/${id}`, { method: 'DELETE' });
+        return true;
     }
 
     static async checkHealth() {
         try {
-            if (USE_MOCK_DATA) {
-                return true;
-            }
-            await this.request('');
-            return true;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            const response = await fetch(`${API_BASE_URL.replace('/api/tasks', '')}/health`, {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            return response.ok;
         } catch (error) {
-            console.warn('Health check failed:', error);
+            console.warn('Health check failed:', error.message);
             return false;
         }
     }
@@ -254,6 +141,6 @@ class TaskAPI {
 
 // Make available globally
 window.TaskAPI = TaskAPI;
+window.API_BASE_URL = API_BASE_URL;
 
-// Log initialization
-console.log('TaskAPI initialized with mock data:', USE_MOCK_DATA);
+console.log(`🔗 API configured to: ${API_BASE_URL}`);
