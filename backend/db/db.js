@@ -77,5 +77,5 @@ async function seedDatabase() {
 };
 
 
-module.exports = { connectDB, getDB, closeDB, seedDatabase };
+module.exports = { db, connectDB, getDB, closeDB, seedDatabase };
 

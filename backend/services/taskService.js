@@ -16,8 +16,8 @@
 //   }
 // ];
 
-const { seedDatabase } = require('../db/db');
-const db = require('./db');
+// Importamos as funções específicas que você exportou no db.js
+const { connectDB, seedDatabase } = require('../db/db');
 
 class TaskService {
     constructor() {
@@ -25,9 +25,12 @@ class TaskService {
     }
     
     async init() {
-        const database = await db.connectDB();
+        // Chamamos a função de conexão que foi importada
+        const database = await connectDB();
+        // Definimos a coleção baseada no retorno da conexão
         this.tasks = database.collection('tasks');
-        this.tasks.seedDatabase();
+        // Chamamos a função de seed que foi importada, não a da coleção
+        await seedDatabase();
     }
     
     async getAllTasks() {
