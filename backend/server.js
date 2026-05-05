@@ -4,28 +4,33 @@ const taskRoutes = require('./routes/taskRoutes');
 const logger = require('./middleware/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3000;  // ← USE THIS
+const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(logger);
 
-// Routes
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
 app.use('/api/tasks', taskRoutes);
 
-// 404 handler
 app.use((req, res) => {
-    res.status(404).json({ error: "Route not found" });
+    res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
 });
 
-// Error handler
 app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    res.status(500).json({ error: err.message || 'Internal Server Error' });
+    console.error("Unhandled error:", err);
+    res.status(500).json({ error: "Internal server error" });
 });
 
-// Listen on all interfaces
-app.listen(PORT, '0.0.0.0', () => {  // ← ADD '0.0.0.0'
-    console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/health`);
+    console.log(`📍 API endpoint: http://localhost:${PORT}/api/tasks`);
 });
