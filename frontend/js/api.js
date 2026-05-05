@@ -1,8 +1,4 @@
-// ========================================
-// API SERVICE - Backend Communication
-// ========================================
-
-// Use Railway backend URL or localhost for development
+// O valor abaixo será substituído automaticamente pela Vercel no deploy
 const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
 
 class TaskAPI {
@@ -17,16 +13,18 @@ class TaskAPI {
         const mergedOptions = { ...defaultOptions, ...options };
 
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, mergedOptions);
-            const data = await response.json();
-
+            // Garante que não haja barras duplas acidentais
+            const url = `${API_BASE_URL}${endpoint}`;
+            const response = await fetch(url, mergedOptions);
+            
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
             }
 
-            return data;
+            return await response.json();
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('Erro na API TaskFlow:', error);
             throw error;
         }
     }
@@ -55,15 +53,7 @@ class TaskAPI {
     }
 
     static async deleteTask(id) {
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.error || 'Delete failed');
-        }
-        
+        await this.request(`/${id}`, { method: 'DELETE' });
         return true;
     }
 
@@ -77,5 +67,5 @@ class TaskAPI {
     }
 }
 
-// Make available globally
+// Disponibiliza globalmente ANTES do app.js carregar
 window.TaskAPI = TaskAPI;
