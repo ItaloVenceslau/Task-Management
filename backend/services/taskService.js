@@ -1,90 +1,95 @@
 // Initial tasks (already created for you)
-let tasks = [
-  {
-    id: 1,
-    title: "Complete Express challenge",
-    description: "Finish the middleware and routing exercise",
-    status: "pending",
-    createdAt: "2026-04-28T10:00:00.000Z"
-  },
-  {
-    id: 2,
-    title: "Review pull requests",
-    description: "Check team's code submissions",
-    status: "in-progress",
-    createdAt: "2026-04-28T09:30:00.000Z"
-  }
-];
+// let tasks = [
+//   {
+//     id: 1,
+//     title: "Complete Express challenge",
+//     description: "Finish the middleware and routing exercise",
+//     status: "pending",
+//     createdAt: "2026-04-28T10:00:00.000Z"
+//   },
+//   {
+//     id: 2,
+//     title: "Review pull requests",
+//     description: "Check team's code submissions",
+//     status: "in-progress",
+//     createdAt: "2026-04-28T09:30:00.000Z"
+//   }
+// ];
 
-let nextId = 3;
+const { seedDatabase } = require('../db/db');
+const db = require('./db');
 
 class TaskService {
-
-    getAllTasks() {
+    constructor() {
+        this.tasks = null;
+    }
+    
+    async init() {
+        const database = await db.connectDB();
+        this.tasks = database.collection('tasks');
+        this.tasks.seedDatabase();
+    }
+    
+    async getAllTasks() {
+        const tasks = await this.tasks.find({}).toArray();
         if (!tasks.length) throw new Error(`Missing tasks, give one task to start`);
-
         return tasks;
     }
-
-    getTaskById(id) {
+    
+    async getTaskById(id) {
         const intId = parseInt(id, 10);
-
         if (isNaN(intId)) throw new Error(`Invalid id`);
-
-        const findId = tasks.find(p => p.id === intId);
-
-        if (!findId) throw new Error(`Task not found`);
-
-        return findId;
+        
+        const task = await this.tasks.findOne({ id: intId });
+        if (!task) throw new Error(`Task not found`);
+        return task;
     }
-
-    createTask(title, description) {
+    
+    async createTask(title, description) {
         if (!title && !description) throw new Error(`The fields "title" and "description" are missing arguments`);
         if (!title || !description) throw new Error(`The field "${!title ? "title" : "description"}" is missing arguments`);
-
+        
+        const lastTask = await this.tasks.find({}).sort({ id: -1 }).limit(1).toArray();
+        const nextId = lastTask.length > 0 ? lastTask[0].id + 1 : 1;
+        
         const newTask = {
-            id: nextId++,
+            id: nextId,
             title: title,
             description: description || '',
             status: 'pending',
             createdAt: new Date().toISOString()
-        };  
-
-        tasks.push(newTask);
-
+        };
+        
+        await this.tasks.insertOne(newTask);
         return newTask;
     }
-
-    updateTask(id, upd) {
-        const {title, status, description} = upd;
+    
+    async updateTask(id, upd) {
+        const { title, status, description } = upd;
         const intId = parseInt(id, 10);
-
-        const index = tasks.findIndex(p => p.id === intId);
-
-        if (index === -1) throw new Error(`task not found`);
-                
-        if (title) tasks[index].title = title;
-
-        if (status) tasks[index].status = status;
-
-        if (description) tasks[index].description = description;
-
-        return {message: `task was updated successfully`};
+        
+        const updateFields = {};
+        if (title) updateFields.title = title;
+        if (status) updateFields.status = status;
+        if (description) updateFields.description = description;
+        
+        const result = await this.tasks.updateOne(
+            { id: intId },
+            { $set: updateFields }
+        );
+        
+        if (result.matchedCount === 0) throw new Error(`Task not found`);
+        return { message: `Task was updated successfully` };
     }
-
-    deleteTask(id) {
+    
+    async deleteTask(id) {
         const intId = parseInt(id, 10);
-
         if (isNaN(intId)) throw new Error(`Invalid id`);
-
-        const idIndex = tasks.findIndex(p => p.id === intId);
-
-        if (idIndex === -1) throw new Error(`Task not found`);
-
-        tasks.splice(idIndex, 1);
-
+        
+        const result = await this.tasks.deleteOne({ id: intId });
+        if (result.deletedCount === 0) throw new Error(`Task not found`);
         return;
     }
 }
 
-module.exports = new TaskService();
+module.exports = TaskService;
