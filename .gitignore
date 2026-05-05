@@ -18,6 +18,7 @@ yarn-error.log*
 .database/
 *.db
 *.sqlite
+railway.json*
 
 # --- FRONTEND (React, Vue, Next.js, etc.) ---
 # Pasta de pacotes do front
