@@ -2,22 +2,9 @@
 // TASKFLOW API - COMPLETE FIXED VERSION
 // ========================================
 
-// Get the correct API URL based on environment
-const getAPIBaseURL = () => {
-    // Get current hostname
-    const hostname = window.location.hostname;
-    
-    // Local development
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:3000/api/tasks';
-    }
-    
-    // Production on Vercel - Use YOUR Railway URL
-    // IMPORTANT: Replace this with your actual Railway URL
-    return 'https://task-management-production-b99a.up.railway.app/api/tasks';
-};
+// Use your WORKING backend URL directly
+const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
 
-const API_BASE_URL = getAPIBaseURL();
 console.log('🔗 API Configured to:', API_BASE_URL);
 
 class TaskAPI {
@@ -31,12 +18,16 @@ class TaskAPI {
 
         const mergedOptions = { ...defaultOptions, ...options };
         
-        // Add timeout
+        // Add timeout to prevent hanging
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         try {
-            const url = `${API_BASE_URL}${endpoint}`;
+            // Build URL correctly - handle both / and no /
+            let url = `${API_BASE_URL}${endpoint}`;
+            // Fix double slash if needed
+            url = url.replace(/([^:]\/)\/+/g, "$1");
+            
             console.log(`📡 ${options.method || 'GET'} ${url}`);
             
             const response = await fetch(url, {
@@ -55,7 +46,7 @@ class TaskAPI {
                 throw new Error(errorMessage);
             }
             
-            // Handle 204 No Content
+            // Handle 204 No Content (successful delete)
             if (response.status === 204) {
                 return { success: true };
             }
@@ -79,15 +70,17 @@ class TaskAPI {
         try {
             const tasks = await this.request('');
             console.log(`📋 Received ${tasks.length} tasks`);
+            // Ensure we return an array
             return Array.isArray(tasks) ? tasks : [];
         } catch (error) {
             console.error('Failed to fetch tasks:', error);
-            // Don't show toast here to avoid spam
+            showToast('Failed to load tasks. Check if backend is running.', 'error');
             return [];
         }
     }
 
     static async getTaskById(id) {
+        if (!id) throw new Error('Task ID is required');
         return await this.request(`/${id}`);
     }
 
@@ -111,8 +104,18 @@ class TaskAPI {
 
     static async deleteTask(id) {
         if (!id) throw new Error('Task ID is required');
-        await this.request(`/${id}`, { method: 'DELETE' });
-        return true;
+        console.log(`🗑️ Deleting task ${id}...`);
+        
+        try {
+            const result = await this.request(`/${id}`, { 
+                method: 'DELETE' 
+            });
+            console.log(`✅ Task ${id} deleted successfully`);
+            return true;
+        } catch (error) {
+            console.error(`❌ Failed to delete task ${id}:`, error);
+            throw error;
+        }
     }
 
     static async checkHealth() {
@@ -121,7 +124,9 @@ class TaskAPI {
             const response = await fetch(healthUrl, {
                 signal: AbortSignal.timeout(5000)
             });
-            return response.ok;
+            const isHealthy = response.ok;
+            console.log(`💚 Health check: ${isHealthy ? 'OK' : 'FAILED'}`);
+            return isHealthy;
         } catch (error) {
             console.warn('Health check failed:', error.message);
             return false;
@@ -132,16 +137,15 @@ class TaskAPI {
 // Make available globally
 window.TaskAPI = TaskAPI;
 
-// Auto test connection on load
+// Auto-test connection on load
 setTimeout(async () => {
     try {
-        const healthy = await TaskAPI.checkHealth();
-        console.log(`💚 Backend health: ${healthy ? 'OK' : 'FAILED'}`);
-        if (healthy) {
-            const tasks = await TaskAPI.getAllTasks();
-            console.log(`📋 Backend has ${tasks.length} tasks`);
+        const tasks = await TaskAPI.getAllTasks();
+        console.log(`✅ Initial API Test: Loaded ${tasks.length} tasks`);
+        if (tasks.length > 0) {
+            console.log('Sample task:', tasks[0]);
         }
     } catch (error) {
-        console.error('Connection test failed:', error);
+        console.error('Initial API Test Failed:', error);
     }
 }, 1000);

@@ -23,7 +23,10 @@ const views = {
 // ========================================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
-    if (!container) return;
+    if (!container) {
+        console.log(`[${type}] ${message}`);
+        return;
+    }
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -51,17 +54,6 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function formatFullDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -75,21 +67,23 @@ function updateTaskCounts() {
     const inProgress = allTasks.filter(t => t.status === 'in-progress').length;
     const completed = allTasks.filter(t => t.status === 'completed').length;
     
-    const allCount = document.getElementById('allCount');
-    const pendingCount = document.getElementById('pendingCount');
-    const progressCount = document.getElementById('progressCount');
-    const completedCount = document.getElementById('completedCount');
-    const taskCountBadge = document.getElementById('taskCountBadge');
+    const elements = {
+        allCount: document.getElementById('allCount'),
+        pendingCount: document.getElementById('pendingCount'),
+        progressCount: document.getElementById('progressCount'),
+        completedCount: document.getElementById('completedCount'),
+        taskCountBadge: document.getElementById('taskCountBadge')
+    };
     
-    if (allCount) allCount.textContent = total;
-    if (pendingCount) pendingCount.textContent = pending;
-    if (progressCount) progressCount.textContent = inProgress;
-    if (completedCount) completedCount.textContent = completed;
-    if (taskCountBadge) taskCountBadge.textContent = total;
+    if (elements.allCount) elements.allCount.textContent = total;
+    if (elements.pendingCount) elements.pendingCount.textContent = pending;
+    if (elements.progressCount) elements.progressCount.textContent = inProgress;
+    if (elements.completedCount) elements.completedCount.textContent = completed;
+    if (elements.taskCountBadge) elements.taskCountBadge.textContent = total;
 }
 
 // ========================================
-// Dashboard Render Functions
+// Dashboard Functions
 // ========================================
 function updateDashboardStats() {
     const total = allTasks.length;
@@ -97,25 +91,24 @@ function updateDashboardStats() {
     const inProgress = allTasks.filter(t => t.status === 'in-progress').length;
     const completed = allTasks.filter(t => t.status === 'completed').length;
     
-    const totalTasks = document.getElementById('totalTasks');
-    const pendingTasks = document.getElementById('pendingTasks');
-    const inProgressTasks = document.getElementById('inProgressTasks');
-    const completedTasks = document.getElementById('completedTasks');
-    const completionPercent = document.getElementById('completionPercent');
-    const pendingProgress = document.getElementById('pendingProgress');
+    const totalEl = document.getElementById('totalTasks');
+    const pendingEl = document.getElementById('pendingTasks');
+    const progressEl = document.getElementById('inProgressTasks');
+    const completedEl = document.getElementById('completedTasks');
+    const percentEl = document.getElementById('completionPercent');
+    const progressFillEl = document.getElementById('pendingProgress');
     
-    if (totalTasks) totalTasks.textContent = total;
-    if (pendingTasks) pendingTasks.textContent = pending;
-    if (inProgressTasks) inProgressTasks.textContent = inProgress;
-    if (completedTasks) completedTasks.textContent = completed;
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (progressEl) progressEl.textContent = inProgress;
+    if (completedEl) completedEl.textContent = completed;
     
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
     const pendingPercent = total > 0 ? Math.round((pending / total) * 100) : 0;
     
-    if (completionPercent) completionPercent.textContent = percent;
-    if (pendingProgress) pendingProgress.style.width = `${pendingPercent}%`;
+    if (percentEl) percentEl.textContent = percent;
+    if (progressFillEl) progressFillEl.style.width = `${pendingPercent}%`;
     
-    // Update completion circle
     const circle = document.getElementById('completionCircle');
     if (circle) {
         const circumference = 2 * Math.PI * 80;
@@ -128,7 +121,9 @@ function renderRecentTasks() {
     const container = document.getElementById('recentTasksList');
     if (!container) return;
     
-    const recentTasks = [...allTasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+    const recentTasks = [...allTasks]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
     
     if (recentTasks.length === 0) {
         container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><p>No tasks yet. Create your first task!</p></div>';
@@ -147,7 +142,7 @@ function renderRecentTasks() {
                     <span>${formatDate(task.createdAt)}</span>
                 </div>
             </div>
-            <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
+            <i class="fas fa-chevron-right"></i>
         </div>
     `).join('');
 }
@@ -180,10 +175,7 @@ function initTaskChart() {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { usePointStyle: true, padding: 20 }
-                }
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
             },
             cutout: '60%'
         }
@@ -222,12 +214,7 @@ function initActivityChart() {
             responsive: true,
             maintainAspectRatio: true,
             plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                }
-            }
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } } }
         }
     });
 }
@@ -242,7 +229,6 @@ function renderTasksList() {
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     let filteredTasks = [...allTasks];
     
-    // Apply search filter
     if (searchTerm) {
         filteredTasks = filteredTasks.filter(task => 
             task.title.toLowerCase().includes(searchTerm) || 
@@ -250,12 +236,10 @@ function renderTasksList() {
         );
     }
     
-    // Apply status filter
     if (currentFilter !== 'all') {
         filteredTasks = filteredTasks.filter(task => task.status === currentFilter);
     }
     
-    // Apply sorting
     filteredTasks.sort((a, b) => {
         switch (currentSort) {
             case 'newest': return new Date(b.createdAt) - new Date(a.createdAt);
@@ -322,14 +306,12 @@ function renderCalendar() {
     
     calendarDays.innerHTML = '';
     
-    // Add empty cells
     for (let i = 0; i < startingDay; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day';
         calendarDays.appendChild(emptyDay);
     }
     
-    // Add days
     for (let day = 1; day <= totalDays; day++) {
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
@@ -355,7 +337,7 @@ function renderCalendar() {
 }
 
 // ========================================
-// CRUD Operations
+// CRUD Operations - FIXED DELETE
 // ========================================
 async function loadAllTasks() {
     console.log('🔄 Loading tasks...');
@@ -407,49 +389,44 @@ async function updateTask(id, updates) {
     }
 }
 
+// FIXED DELETE FUNCTION - Complete rewrite
 async function deleteTask(id) {
-    console.log('Delete called for id:', id);
+    console.log('🗑️ Delete function called for task ID:', id);
     
-    const modal = document.getElementById('deleteModal');
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    
-    if (!modal) {
-        if (confirm('Are you sure you want to delete this task?')) {
-            try {
-                await TaskAPI.deleteTask(id);
-                showToast('Task deleted successfully!', 'success');
-                await loadAllTasks();
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
+    if (!id) {
+        console.error('No task ID provided');
+        showToast('Invalid task ID', 'error');
         return;
     }
     
-    window.pendingDeleteId = id;
-    modal.classList.add('active');
+    // Show confirmation dialog
+    const confirmed = confirm(`Are you sure you want to delete task #${id}? This action cannot be undone.`);
     
-    const handleConfirm = async () => {
-        try {
-            await TaskAPI.deleteTask(window.pendingDeleteId);
-            showToast('Task deleted successfully!', 'success');
-            await loadAllTasks();
-            modal.classList.remove('active');
-        } catch (error) {
-            showToast(error.message, 'error');
-        }
-        confirmBtn.removeEventListener('click', handleConfirm);
-    };
+    if (!confirmed) {
+        console.log('Delete cancelled by user');
+        return;
+    }
     
-    confirmBtn.removeEventListener('click', handleConfirm);
-    confirmBtn.addEventListener('click', handleConfirm);
+    try {
+        console.log('Sending delete request for task:', id);
+        await TaskAPI.deleteTask(id);
+        console.log('Delete successful for task:', id);
+        showToast('Task deleted successfully!', 'success');
+        await loadAllTasks();
+    } catch (error) {
+        console.error('Delete failed:', error);
+        showToast(error.message || 'Failed to delete task', 'error');
+    }
 }
 
 async function editTask(id) {
+    console.log('✏️ Edit function called for task ID:', id);
+    
     try {
         const task = await TaskAPI.getTaskById(id);
-        const modal = document.getElementById('editModal');
+        console.log('Task data:', task);
         
+        const modal = document.getElementById('editModal');
         const idField = document.getElementById('editTaskId');
         const titleField = document.getElementById('editTitle');
         const descField = document.getElementById('editDescription');
@@ -470,6 +447,7 @@ async function editTask(id) {
         
         if (modal) modal.classList.add('active');
     } catch (error) {
+        console.error('Edit failed:', error);
         showToast(error.message, 'error');
     }
 }
@@ -565,7 +543,6 @@ async function checkApiStatus() {
         } else {
             statusIndicator.className = 'api-status-indicator offline';
             statusText.textContent = 'Offline';
-            showToast('Cannot connect to API server', 'error');
         }
     }
 }
@@ -643,24 +620,18 @@ function setupEventListeners() {
     // Calendar navigation
     const prevMonth = document.getElementById('prevMonth');
     const nextMonth = document.getElementById('nextMonth');
-    if (prevMonth) {
-        prevMonth.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-    }
-    if (nextMonth) {
-        nextMonth.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
-    }
+    if (prevMonth) prevMonth.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+    if (nextMonth) nextMonth.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
     
     // Create task button
     const createHeaderBtn = document.getElementById('createTaskHeaderBtn');
-    if (createHeaderBtn) {
-        createHeaderBtn.addEventListener('click', () => switchView('create'));
-    }
+    if (createHeaderBtn) createHeaderBtn.addEventListener('click', () => switchView('create'));
     
     // Clear search
     const clearSearch = document.getElementById('clearSearch');
@@ -684,6 +655,8 @@ window.deleteTask = deleteTask;
 
 async function init() {
     console.log('🚀 Initializing TaskFlow...');
+    console.log('API URL:', window.TaskAPI ? 'TaskAPI loaded' : 'TaskAPI NOT loaded');
+    
     setupEventListeners();
     await checkApiStatus();
     await loadAllTasks();
@@ -697,7 +670,7 @@ async function init() {
     }, 30000);
 }
 
-// Start the application when DOM is ready
+// Start the application
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
