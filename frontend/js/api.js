@@ -1,5 +1,49 @@
-// O valor abaixo será substituído automaticamente pela Vercel no deploy
-const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
+// ========================================
+// API CONFIGURATION FOR VERCEL + RAILWAY
+// ========================================
+
+// Automatically detects environment and uses correct backend URL
+
+const USE_MOCK_DATA = true; // Set to false when real API is available
+
+// Mock data
+let mockTasks = [
+    {
+        id: 1,
+        title: "Complete project documentation",
+        description: "Write comprehensive documentation for the TaskFlow API",
+        status: "pending",
+        createdAt: new Date().toISOString()
+    },
+    {
+        id: 2,
+        title: "Fix navigation bug",
+        description: "Resolve the sidebar collapse issue on mobile devices",
+        status: "in-progress",
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+    },
+    {
+        id: 3,
+        title: "Update dependencies",
+        description: "Upgrade all npm packages to latest versions",
+        status: "completed",
+        createdAt: new Date(Date.now() - 172800000).toISOString()
+    }
+];
+
+const getApiBaseUrl = () => {
+    // Production: Frontend running on Vercel
+    if (window.location.hostname.includes('vercel.app') || 
+        window.location.hostname !== 'localhost') {
+        // REPLACE THIS WITH YOUR ACTUAL RAILWAY URL
+        return 'https://your-railway-app.up.railway.app/api/tasks';
+    }
+    
+    // Development: Localhost
+    return 'http://localhost:3000/api/tasks';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
@@ -13,18 +57,19 @@ class TaskAPI {
         const mergedOptions = { ...defaultOptions, ...options };
 
         try {
-            // Garante que não haja barras duplas acidentais
             const url = `${API_BASE_URL}${endpoint}`;
+            console.log(`📡 API Call: ${options.method || 'GET'} ${url}`);
+            
             const response = await fetch(url, mergedOptions);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Erro na API TaskFlow:', error);
+            console.error('❌ API Error:', error);
             throw error;
         }
     }
@@ -59,13 +104,15 @@ class TaskAPI {
 
     static async checkHealth() {
         try {
-            await this.request('');
-            return true;
+            const healthUrl = API_BASE_URL.replace('/api/tasks', '/health');
+            const response = await fetch(healthUrl);
+            return response.ok;
         } catch {
             return false;
         }
     }
 }
 
-// Disponibiliza globalmente ANTES do app.js carregar
+// Make available globally
 window.TaskAPI = TaskAPI;
+console.log(`✅ API Configured: ${API_BASE_URL}`);
