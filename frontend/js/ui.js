@@ -1,5 +1,5 @@
 // ========================================
-// UI CONTROLLER - Premium UI Interactions
+// UI CONTROLLER - FINAL WORKING VERSION
 // ========================================
 
 class TaskFlowUI {
@@ -30,7 +30,6 @@ class TaskFlowUI {
                 this.sidebar.classList.add('mobile-open');
                 sidebarOverlay.classList.add('active');
             });
-
             sidebarOverlay.addEventListener('click', () => {
                 this.sidebar.classList.remove('mobile-open');
                 sidebarOverlay.classList.remove('active');
@@ -57,6 +56,8 @@ class TaskFlowUI {
         if (savedTheme === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
             this.themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+        } else {
+            this.themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Dark Mode</span>';
         }
 
         this.themeToggle.addEventListener('click', () => {
@@ -103,7 +104,6 @@ class TaskFlowUI {
                 titleCount.textContent = titleInput.value.length;
             });
         }
-
         if (descInput && descCount) {
             descInput.addEventListener('input', () => {
                 descCount.textContent = descInput.value.length;
@@ -152,7 +152,11 @@ class TaskFlowUI {
     }
 }
 
-// Initialize UI when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.taskFlowUI = new TaskFlowUI();
+    });
+} else {
     window.taskFlowUI = new TaskFlowUI();
-});
+}
