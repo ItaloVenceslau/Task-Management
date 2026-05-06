@@ -45,7 +45,6 @@ class TaskFlowUI {
             });
         }
 
-        // Load saved state
         const savedState = localStorage.getItem('sidebarCollapsed');
         if (savedState === 'true') {
             this.sidebar.classList.add('collapsed');
