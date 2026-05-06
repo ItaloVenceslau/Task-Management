@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskFlow Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        button { margin: 5px; padding: 10px; cursor: pointer; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+        .task { border: 1px solid #ccc; margin: 10px 0; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>TaskFlow API Test</h1>
+    <div>
+        <button onclick="testHealth()">Test Health</button>
+        <button onclick="testGetTasks()">Get Tasks</button>
+        <button onclick="testCreateTask()">Create Task</button>
+        <button onclick="testDeleteTask()">Delete Task (ID=3)</button>
+    </div>
+    <h3>Output:</h3>
+    <pre id="output">Click a button to test...</pre>
+    <h3>Tasks:</h3>
+    <div id="tasks"></div>
+
+    <script>
+        const API_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
+        
+        function log(message, data = null) {
+            const output = document.getElementById('output');
+            output.textContent = message + (data ? '\n\n' + JSON.stringify(data, null, 2) : '');
+            console.log(message, data);
+        }
+        
+        async function testHealth() {
+            try {
+                const res = await fetch('https://task-management-production-b99a.up.railway.app/health');
+                const data = await res.json();
+                log('✅ Health check successful:', data);
+            } catch (e) {
+                log('❌ Health check failed:', e.message);
+            }
+        }
+        
+        async function testGetTasks() {
+            try {
+                const res = await fetch(API_URL);
+                const tasks = await res.json();
+                log(`✅ Got ${tasks.length} tasks:`, tasks);
+                
+                // Display tasks
+                const tasksDiv = document.getElementById('tasks');
+                if (tasks.length === 0) {
+                    tasksDiv.innerHTML = '<p>No tasks found</p>';
+                } else {
+                    tasksDiv.innerHTML = tasks.map(task => `
+                        <div class="task">
+                            <strong>ID: ${task.id}</strong><br>
+                            Title: ${task.title}<br>
+                            Status: ${task.status}<br>
+                            <button onclick="testDeleteTask(${task.id})">Delete Task ${task.id}</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                log('❌ Failed to get tasks:', e.message);
+            }
+        }
+        
+        async function testCreateTask() {
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        title: `Test Task ${Date.now()}`, 
+                        description: 'Created from test page' 
+                    })
+                });
+                const data = await res.json();
+                log('✅ Task created:', data);
+                testGetTasks(); // Refresh list
+            } catch (e) {
+                log('❌ Failed to create task:', e.message);
+            }
+        }
+        
+        async function testDeleteTask(id = 3) {
+            try {
+                const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (res.status === 204) {
+                    log(`✅ Task ${id} deleted successfully`);
+                } else {
+                    const data = await res.json();
+                    log(`⚠️ Delete response:`, data);
+                }
+                testGetTasks(); // Refresh list
+            } catch (e) {
+                log('❌ Failed to delete task:', e.message);
+            }
+        }
+    </script>
+</body>
+</html>
