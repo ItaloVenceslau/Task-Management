@@ -1,72 +1,79 @@
-// API Configuration
-const USE_MOCK_DATA = false;  // ← CHANGE THIS TO false
+// ========================================
+// TASKFLOW API - REAL BACKEND ONLY
+// ========================================
 
-// Real API URL (your Railway backend)
 const API_BASE_URL = 'https://task-management-production-b99a.up.railway.app/api/tasks';
 
-// Mock data is now DISABLED
-let mockTasks = []; // Won't be used
+console.log('🔗 API Connected to:', API_BASE_URL);
 
 class TaskAPI {
     static async request(endpoint, options = {}) {
-        // If USE_MOCK_DATA is false, use real backend
-        if (!USE_MOCK_DATA) {
-            const defaultOptions = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            };
-
-            const mergedOptions = { ...defaultOptions, ...options };
-            
-            try {
-                const url = `${API_BASE_URL}${endpoint}`;
-                console.log(`📡 API Request: ${options.method || 'GET'} ${url}`);
-                
-                const response = await fetch(url, mergedOptions);
-                
-                if (!response.ok) {
-                    let errorMessage = `HTTP Error: ${response.status}`;
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorMessage;
-                    } catch (e) {}
-                    throw new Error(errorMessage);
-                }
-                
-                if (response.status === 204) {
-                    return { success: true };
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                throw error;
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             }
-        } else {
-            // Mock data mode (currently disabled)
-            return this.mockRequest(endpoint, options);
+        };
+
+        const mergedOptions = { ...defaultOptions, ...options };
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        try {
+            let url = `${API_BASE_URL}${endpoint}`;
+            url = url.replace(/([^:]\/)\/+/g, "$1");
+            
+            console.log(`📡 ${options.method || 'GET'} ${url}`);
+            
+            const response = await fetch(url, {
+                ...mergedOptions,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                let errorMessage = `HTTP Error: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {}
+                throw new Error(errorMessage);
+            }
+            
+            if (response.status === 204) {
+                return { success: true };
+            }
+            
+            return await response.json();
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.error('❌ API Error:', error);
+            throw error;
         }
     }
 
     static async getAllTasks() {
         try {
             const tasks = await this.request('');
-            console.log(`📋 Received ${tasks.length} tasks from BACKEND`);
+            console.log(`📋 Backend returned ${tasks.length} tasks`);
             return Array.isArray(tasks) ? tasks : [];
         } catch (error) {
             console.error('Failed to fetch tasks:', error);
-            showToast('Failed to load tasks. Make sure the backend is running.', 'error');
             return [];
         }
     }
 
     static async getTaskById(id) {
+        if (!id) throw new Error('Task ID is required');
         return await this.request(`/${id}`);
     }
 
     static async createTask(title, description) {
+        if (!title || !description) {
+            throw new Error('Title and description are required');
+        }
         return await this.request('', {
             method: 'POST',
             body: JSON.stringify({ title, description })
@@ -74,6 +81,7 @@ class TaskAPI {
     }
 
     static async updateTask(id, updates) {
+        if (!id) throw new Error('Task ID is required');
         return await this.request(`/${id}`, {
             method: 'PUT',
             body: JSON.stringify(updates)
@@ -81,7 +89,10 @@ class TaskAPI {
     }
 
     static async deleteTask(id) {
+        if (!id) throw new Error('Task ID is required');
+        console.log(`🗑️ Deleting task ${id}...`);
         await this.request(`/${id}`, { method: 'DELETE' });
+        console.log(`✅ Task ${id} deleted`);
         return true;
     }
 
@@ -91,19 +102,23 @@ class TaskAPI {
             const response = await fetch(healthUrl);
             return response.ok;
         } catch (error) {
-            console.warn('Health check failed:', error);
+            console.warn('Health check failed:', error.message);
             return false;
         }
-    }
-
-    // Mock methods (kept for reference but not used)
-    static async mockRequest(endpoint, options) {
-        console.warn('Mock data is disabled. Use real backend.');
-        throw new Error('Mock data disabled');
     }
 }
 
 window.TaskAPI = TaskAPI;
 
-console.log('🔗 API configured to:', API_BASE_URL);
-console.log('📌 Mock data enabled:', USE_MOCK_DATA);
+// Test on load
+setTimeout(async () => {
+    try {
+        const tasks = await TaskAPI.getAllTasks();
+        console.log(`✅ Connected to backend. Found ${tasks.length} tasks`);
+        if (tasks.length > 0) {
+            console.log('First task:', tasks[0]);
+        }
+    } catch (error) {
+        console.error('❌ Backend connection failed:', error.message);
+    }
+}, 1000);
