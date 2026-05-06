@@ -36,6 +36,7 @@ class TaskFlowUI {
                 sidebarOverlay.classList.remove('active');
             });
         }
+        
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
                 this.sidebar.classList.toggle('collapsed');
@@ -53,7 +54,6 @@ class TaskFlowUI {
     }
 
     initTheme() {
-        // Check for saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
@@ -113,19 +113,15 @@ class TaskFlowUI {
     }
 
     initModalTriggers() {
-        // Close modal on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                const modals = document.querySelectorAll('.modal.active');
-                modals.forEach(modal => {
+                document.querySelectorAll('.modal.active').forEach(modal => {
                     modal.classList.remove('active');
                 });
             }
         });
 
-        // Close modal on backdrop click
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
+        document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.classList.remove('active');
@@ -157,82 +153,7 @@ class TaskFlowUI {
     }
 }
 
-// Connection Monitor - Wait for TaskAPI to be ready
-class ConnectionMonitor {
-    constructor() {
-        this.isOnline = true;
-        this.retryCount = 0;
-        this.maxRetries = 3;
-        // Wait for TaskAPI to be available
-        if (window.TaskAPI) {
-            this.init();
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                if (window.TaskAPI) this.init();
-            });
-        }
-    }
-    
-    init() {
-        // Check connection every 30 seconds
-        setInterval(() => this.checkConnection(), 30000);
-        this.checkConnection();
-    }
-    
-    async checkConnection() {
-        // Check if TaskAPI is available
-        if (!window.TaskAPI) {
-            console.warn('TaskAPI not available yet');
-            return;
-        }
-        
-        try {
-            const isHealthy = await TaskAPI.checkHealth();
-            
-            if (isHealthy !== this.isOnline) {
-                this.isOnline = isHealthy;
-                this.updateConnectionStatus();
-                
-                if (isHealthy) {
-                    if (typeof showToast === 'function') {
-                        showToast('Backend connection restored!', 'success');
-                    }
-                    // Reload to fetch fresh data
-                    location.reload();
-                } else {
-                    if (typeof showToast === 'function') {
-                        showToast('Lost connection to backend server', 'error');
-                    }
-                }
-            }
-        } catch (error) {
-            console.warn('Connection check failed:', error);
-        }
-    }
-    
-    updateConnectionStatus() {
-        const statusIndicator = document.getElementById('apiStatus');
-        const statusText = document.getElementById('apiStatusText');
-        
-        if (statusIndicator && statusText) {
-            if (this.isOnline) {
-                statusIndicator.className = 'api-status-indicator online';
-                statusText.textContent = 'Connected';
-            } else {
-                statusIndicator.className = 'api-status-indicator offline';
-                statusText.textContent = 'Offline - Retrying...';
-            }
-        }
-    }
-}
-
 // Initialize UI when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.taskFlowUI = new TaskFlowUI();
-    // Initialize connection monitor after TaskAPI is confirmed
-    setTimeout(() => {
-        if (window.TaskAPI) {
-            window.connectionMonitor = new ConnectionMonitor();
-        }
-    }, 100);
 });
